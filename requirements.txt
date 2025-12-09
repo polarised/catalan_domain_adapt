@@ -1,0 +1,10 @@
+requests
+numpy
+tqdm
+mwxml
+mwparserfromhell
+datasets
+transformers
+torch
+scikit-learn
+pyconll
