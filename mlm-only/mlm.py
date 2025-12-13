@@ -71,6 +71,7 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--use-group-texts", action="store_true", help="Concatenate and chunk texts (recommended)")
     parser.add_argument("--no-download", action="store_true", help="Skip downloading dump if already present")
+    parser.add_argument("--gradient-accumulation-steps",type=int,default=8,help="Number of gradient accumulation steps (default: 8)")
     args = parser.parse_args()
 
     set_seed(args.seed)
@@ -148,7 +149,7 @@ def main():
         num_train_epochs=args.num_train_epochs,
         per_device_train_batch_size=args.train_batch_size,
         per_device_eval_batch_size=args.eval_batch_size,
-        gradient_accumulation_steps=8,   # << ADD THIS
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
         evaluation_strategy="steps",
         eval_steps=500,
         save_steps=500,
