@@ -205,3 +205,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# Ignorar el archivo grande
+cawiki-latest-pages-articles.xml.bz2
+# Archivos de salida y logs
+*.err
+*.out
+*.save
+*.sh
+Clean_Datasets/
