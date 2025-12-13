@@ -148,6 +148,7 @@ def main():
         num_train_epochs=args.num_train_epochs,
         per_device_train_batch_size=args.train_batch_size,
         per_device_eval_batch_size=args.eval_batch_size,
+        gradient_accumulation_steps=8,   # << ADD THIS
         evaluation_strategy="steps",
         eval_steps=500,
         save_steps=500,
@@ -158,8 +159,9 @@ def main():
         warmup_steps=500,
         fp16=torch.cuda.is_available(),
         dataloader_num_workers=4,
-        report_to="none",  # disable reporting integrations; change if you use wandb
+        report_to="none",
     )
+
 
     # 11) Trainer
     trainer = Trainer(
