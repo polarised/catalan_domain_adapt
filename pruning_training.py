@@ -156,18 +156,11 @@ def prune_layers(model, keep_layers):
 
 
 def calculate_head_importance(model, dataloader, device):
-    """
-    Calculate importance of each attention head based on attention weights.
-    
-    Args:
-        model: The model to analyze
-        dataloader: DataLoader with evaluation data
-        device: torch device
-        
-    Returns:
-        head_importance: Dict mapping (layer_idx, head_idx) -> importance score
-    """
+    """Calculate importance of each attention head based on attention weights."""
     print("\nCalculating head importance scores...")
+    
+    # IMPORTANT: Ensure model is on correct device and in eval mode
+    model = model.to(device)  # Add this line
     model.eval()
     
     # Initialize importance scores
@@ -205,22 +198,16 @@ def calculate_head_importance(model, dataloader, device):
 
 
 def prune_heads(model, heads_to_keep_per_layer, train_dataloader=None):
-    """
-    Prune attention heads based on importance.
-    
-    Args:
-        model: XLMRobertaForTokenClassification model
-        heads_to_keep_per_layer: Number of heads to keep per layer
-        train_dataloader: DataLoader for calculating importance (optional)
-    """
+    """Prune attention heads based on importance."""
     print(f"\nPruning heads... Keeping {heads_to_keep_per_layer} heads per layer")
     
     num_layers = model.config.num_hidden_layers
     num_heads = model.config.num_attention_heads
     
     if train_dataloader is not None:
-        # Calculate head importance
-        head_importance = calculate_head_importance(model, train_dataloader, device)
+        # Make sure model is on device before calculating importance
+        current_device = next(model.parameters()).device  # Get model's device
+        head_importance = calculate_head_importance(model, train_dataloader, current_device)
         
         # For each layer, keep top-k most important heads
         heads_to_prune = {}
@@ -317,11 +304,11 @@ print(f"EXPERIMENT: {PRUNING_EXPERIMENTS[CURRENT_EXPERIMENT]['description']}")
 print("="*70)
 
 print("\nLoading tokenizer and base model...")
-tokenizer = XLMRobertaTokenizerFast.from_pretrained("xlm-roberta-base")
+FINETUNED_MODEL_PATH = "/fhome/amlai09/catalan_domain_adapt/Training_Baseline/model_output"
+tokenizer = XLMRobertaTokenizerFast.from_pretrained(FINETUNED_MODEL_PATH)
 model = XLMRobertaForTokenClassification.from_pretrained(
-    "xlm-roberta-base",
-    num_labels=len(UPOS)
-)
+    FINETUNED_MODEL_PATH
+).to(device)
 
 # Add label mappings
 model.config.id2label = id2upos
@@ -360,14 +347,13 @@ if PRUNING_EXPERIMENTS[CURRENT_EXPERIMENT]["type"] == "head":
 else:
     importance_loader = None
 
-# Apply pruning
+# Apply pruning - keep model on device
+model = model.to(device)  # ← Move model FIRST
 model, pruning_stats = apply_pruning(
     model, 
     PRUNING_EXPERIMENTS[CURRENT_EXPERIMENT],
     importance_loader
 )
-
-model = model.to(device)
 
 # Count parameters after pruning
 params_after = count_parameters(model)
